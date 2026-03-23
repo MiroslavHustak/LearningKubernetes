@@ -1,4 +1,35 @@
 ---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: canopy-data-pv
+
+spec:
+  capacity:
+    storage: 1Gi
+
+  accessModes:
+    - ReadWriteOnce
+
+  hostPath:
+    path: "C:/Users/Mira/data"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: canopy-data-pvc
+
+spec:
+  accessModes:
+    - ReadWriteOnce
+
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -31,7 +62,23 @@ spec:
             - name: API_KEY
               value: test747646s5d4fvasfd645654asgasga654a6g13a2fg465a4fg4a3
 
+          volumeMounts:
+            - name: canopy-storage
+              mountPath: /app/CanopyResults
+
+            - name: canopy-storage
+              mountPath: /app/logging
+
+            - name: canopy-storage
+              mountPath: /app/jsonLinks
+
+      volumes:
+        - name: canopy-storage
+          persistentVolumeClaim:
+            claimName: canopy-data-pvc
+
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -47,32 +94,62 @@ spec:
     - port: 80
       targetPort: 80
 
-
 ---
+
 apiVersion: batch/v1
-kind: Job
+kind: CronJob
 metadata:
   name: canopy-scraper
 
 spec:
-  template:
+  schedule: "0 22 * * *"
+
+  concurrencyPolicy: Forbid
+   
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+
+  startingDeadlineSeconds: 86400
+
+  jobTemplate:
     spec:
-      containers:
-        - name: canopy-scraper
+      template:
+        spec:
+          containers:
+            - name: canopy-scraper
 
-          image: canopy-scraper:latest
+              image: canopy-scraper:latest
 
-          imagePullPolicy: Never
+              imagePullPolicy: Never
 
-          env:
-            - name: API_BASE_URL
-              value: http://canopy-api
+              env:
+                - name: API_BASE_URL
+                  value: http://canopy-api
 
-      restartPolicy: Never
+                - name: INTERACTIVE
+                  value: "false"
 
-  backoffLimit: 2
+              volumeMounts:
+                - name: canopy-storage
+                  mountPath: /app/CanopyResults
+
+                - name: canopy-storage
+                  mountPath: /app/logging
+
+                - name: canopy-storage
+                  mountPath: /app/jsonLinks
+
+          restartPolicy: Never
+
+          volumes:
+            - name: canopy-storage
+              persistentVolumeClaim:
+                claimName: canopy-data-pvc
+
+      backoffLimit: 2
 
 ---
+
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -88,6 +165,21 @@ spec:
 
           imagePullPolicy: Never
 
+          volumeMounts:
+            - name: canopy-storage
+              mountPath: /app/CanopyResults
+
+            - name: canopy-storage
+              mountPath: /app/logging
+
+            - name: canopy-storage
+              mountPath: /app/jsonLinks
+
       restartPolicy: Never
+
+      volumes:
+        - name: canopy-storage
+          persistentVolumeClaim:
+            claimName: canopy-data-pvc
 
   backoffLimit: 2
