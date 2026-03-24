@@ -86,14 +86,20 @@ spec:
                   key: API_KEY
 
           volumeMounts:
-            - name: canopy-storage
-              mountPath: /app/CanopyResults
+            - name: APP_DATA_PATH
+              value: /app  
 
             - name: canopy-storage
-              mountPath: /app/logging
+              mountPath: /app/canopy/CanopyResults
+              subPath: CanopyResults
 
             - name: canopy-storage
-              mountPath: /app/jsonLinks
+              mountPath: /app/canopy/logging
+              subPath: logging
+
+            - name: canopy-storage
+              mountPath: /app/canopy/jsonLinks
+              subPath: jsonLinks
 
       volumes:
         - name: canopy-storage
@@ -157,14 +163,20 @@ spec:
                       key: INTERACTIVE
 
               volumeMounts:
-                - name: canopy-storage
-                  mountPath: /app/CanopyResults
+                - name: APP_DATA_PATH
+                  value: /app
 
                 - name: canopy-storage
-                  mountPath: /app/logging
+                  mountPath: /app/canopy/CanopyResults
+                  subPath: CanopyResults
 
                 - name: canopy-storage
-                  mountPath: /app/jsonLinks
+                  mountPath: /app/canopy/logging
+                  subPath: logging
+   
+                - name: canopy-storage
+                  mountPath: /app/canopy/jsonLinks
+                  subPath: jsonLinks
 
           restartPolicy: Never
 
