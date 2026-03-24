@@ -191,21 +191,6 @@ spec:
 
           imagePullPolicy: Never
 
-          volumeMounts:
-            - name: canopy-storage
-              mountPath: /app/CanopyResults
-
-            - name: canopy-storage
-              mountPath: /app/logging
-
-            - name: canopy-storage
-              mountPath: /app/jsonLinks
-
       restartPolicy: Never
-
-      volumes:
-        - name: canopy-storage
-          persistentVolumeClaim:
-            claimName: canopy-data-pvc
 
   backoffLimit: 2
