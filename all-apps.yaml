@@ -85,21 +85,18 @@ spec:
                   name: canopy-secret
                   key: API_KEY
 
-          volumeMounts:
             - name: APP_DATA_PATH
-              value: /app  
+              value: /app    
+
+          volumeMounts:
+            - name: canopy-storage
+              mountPath: /app/CanopyResults
 
             - name: canopy-storage
-              mountPath: /app/canopy/CanopyResults
-              subPath: CanopyResults
+              mountPath: /app/logging
 
             - name: canopy-storage
-              mountPath: /app/canopy/logging
-              subPath: logging
-
-            - name: canopy-storage
-              mountPath: /app/canopy/jsonLinks
-              subPath: jsonLinks
+              mountPath: /app/jsonLinks
 
       volumes:
         - name: canopy-storage
@@ -162,21 +159,18 @@ spec:
                       name: canopy-config
                       key: INTERACTIVE
 
-              volumeMounts:
                 - name: APP_DATA_PATH
-                  value: /app
+                  value: /app  
+
+              volumeMounts:
+                - name: canopy-storage
+                  mountPath: /app/CanopyResults
 
                 - name: canopy-storage
-                  mountPath: /app/canopy/CanopyResults
-                  subPath: CanopyResults
+                  mountPath: /app/logging
 
                 - name: canopy-storage
-                  mountPath: /app/canopy/logging
-                  subPath: logging
-   
-                - name: canopy-storage
-                  mountPath: /app/canopy/jsonLinks
-                  subPath: jsonLinks
+                  mountPath: /app/jsonLinks
 
           restartPolicy: Never
 
