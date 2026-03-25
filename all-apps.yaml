@@ -52,6 +52,17 @@ spec:
       labels:
         app: canopy-api
     spec:
+      initContainers:
+        - name: create-data-folders
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /data/CanopyResults /data/jsonLinks /data/logging
+          volumeMounts:
+            - name: canopy-storage
+              mountPath: /data
       containers:
         - name: canopy-api
           image: canopy-api:latest
@@ -98,8 +109,20 @@ spec:
   startingDeadlineSeconds: 86400
   jobTemplate:
     spec:
+      backoffLimit: 2
       template:
         spec:
+          initContainers:
+            - name: create-data-folders
+              image: busybox
+              command:
+                - sh
+                - -c
+                - |
+                  mkdir -p /data/CanopyResults /data/jsonLinks /data/logging
+              volumeMounts:
+                - name: canopy-storage
+                  mountPath: /data
           containers:
             - name: canopy-scraper
               image: canopy-scraper:latest
@@ -125,18 +148,35 @@ spec:
             - name: canopy-storage
               persistentVolumeClaim:
                 claimName: canopy-data-pvc
-      backoffLimit: 2
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: excel-json-xml-to-db
 spec:
+  backoffLimit: 2
   template:
     spec:
+      initContainers:
+        - name: create-data-folders
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /data/CanopyResults /data/jsonLinks /data/logging
+          volumeMounts:
+            - name: canopy-storage
+              mountPath: /data
       containers:
         - name: excel-json-xml-to-db
           image: excel-json_xml_to_db:latest
           imagePullPolicy: Never
+          volumeMounts:
+            - name: canopy-storage
+              mountPath: /data
       restartPolicy: Never
-  backoffLimit: 2
+      volumes:
+        - name: canopy-storage
+          persistentVolumeClaim:
+            claimName: canopy-data-pvc
