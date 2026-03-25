@@ -3,200 +3,140 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: canopy-config
-
 data:
   API_BASE_URL: http://canopy-api
   INTERACTIVE: "false"
-
 ---
 apiVersion: v1
 kind: Secret
 metadata:
   name: canopy-secret
-
 type: Opaque
-
 stringData:
   API_KEY: test747646s5d4fvasfd645654asgasga654a6g13a2fg465a4fg4a3
-
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: canopy-data-pv
-
 spec:
   capacity:
     storage: 1Gi
-
   accessModes:
     - ReadWriteOnce
-
   hostPath:
     path: "C:/Users/Mira/data"
-
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: canopy-data-pvc
-
 spec:
   accessModes:
     - ReadWriteOnce
-
   resources:
     requests:
       storage: 1Gi
-
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: canopy-api
-
 spec:
   replicas: 1
-
   selector:
     matchLabels:
       app: canopy-api
-
   template:
     metadata:
       labels:
         app: canopy-api
-
     spec:
       containers:
         - name: canopy-api
-
           image: canopy-api:latest
-
           imagePullPolicy: Never
-
           ports:
             - containerPort: 80
-
           env:
             - name: API_KEY
               valueFrom:
                 secretKeyRef:
                   name: canopy-secret
                   key: API_KEY
-
             - name: APP_DATA_PATH
-              value: /app    
-
+              value: /data
           volumeMounts:
             - name: canopy-storage
-              mountPath: /app/CanopyResults
-
-            - name: canopy-storage
-              mountPath: /app/logging
-
-            - name: canopy-storage
-              mountPath: /app/jsonLinks
-
+              mountPath: /data
       volumes:
         - name: canopy-storage
           persistentVolumeClaim:
             claimName: canopy-data-pvc
-
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: canopy-api
-
 spec:
   type: NodePort
-
   selector:
     app: canopy-api
-
   ports:
     - port: 80
       targetPort: 80
-
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: canopy-scraper
-
 spec:
   schedule: "0 22 * * *"
-
   concurrencyPolicy: Forbid
-
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 1
-
   startingDeadlineSeconds: 86400
-
   jobTemplate:
     spec:
       template:
         spec:
           containers:
             - name: canopy-scraper
-
               image: canopy-scraper:latest
-
               imagePullPolicy: Never
-
               env:
                 - name: API_BASE_URL
                   valueFrom:
                     configMapKeyRef:
                       name: canopy-config
                       key: API_BASE_URL
-
                 - name: INTERACTIVE
                   valueFrom:
                     configMapKeyRef:
                       name: canopy-config
                       key: INTERACTIVE
-
                 - name: APP_DATA_PATH
-                  value: /app  
-
+                  value: /data
               volumeMounts:
                 - name: canopy-storage
-                  mountPath: /app/CanopyResults
-
-                - name: canopy-storage
-                  mountPath: /app/logging
-
-                - name: canopy-storage
-                  mountPath: /app/jsonLinks
-
+                  mountPath: /data
           restartPolicy: Never
-
           volumes:
             - name: canopy-storage
               persistentVolumeClaim:
                 claimName: canopy-data-pvc
-
       backoffLimit: 2
-
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: excel-json-xml-to-db
-
 spec:
   template:
     spec:
       containers:
         - name: excel-json-xml-to-db
-
           image: excel-json_xml_to_db:latest
-
           imagePullPolicy: Never
-
       restartPolicy: Never
-
   backoffLimit: 2
