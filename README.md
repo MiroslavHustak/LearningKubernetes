@@ -1,2 +1,2 @@
 # LearningKubernetes
-Learning Kubernetes via Docker.Desktop
+Learning Kubernetes / Docker.Desktop
