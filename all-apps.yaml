@@ -15,6 +15,7 @@ type: Opaque
 stringData:
   API_KEY: test747646s5d4fvasfd645654asgasga654a6g13a2fg465a4fg4a3
 ---
+# --- Canopy storage ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -31,6 +32,30 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: canopy-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# --- excel-json-xml-to-db storage (independent) ---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: excel-json-xml-to-db-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "C:/Users/Mira/excel-json-xml-to-db-data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: excel-json-xml-to-db-pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -157,26 +182,15 @@ spec:
   backoffLimit: 2
   template:
     spec:
-      initContainers:
-        - name: create-data-folders
-          image: busybox
-          command:
-            - sh
-            - -c
-            - |
-              mkdir -p /data/CanopyResults /data/jsonLinks /data/logging
-          volumeMounts:
-            - name: canopy-storage
-              mountPath: /data
       containers:
         - name: excel-json-xml-to-db
           image: excel-json_xml_to_db:latest
           imagePullPolicy: Never
           volumeMounts:
-            - name: canopy-storage
+            - name: excel-json-xml-to-db-storage
               mountPath: /data
       restartPolicy: Never
       volumes:
-        - name: canopy-storage
+        - name: excel-json-xml-to-db-storage
           persistentVolumeClaim:
-            claimName: canopy-data-pvc
+            claimName: excel-json-xml-to-db-pvc
