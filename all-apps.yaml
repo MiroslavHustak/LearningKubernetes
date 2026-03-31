@@ -114,7 +114,7 @@ spec:
 
       containers:
         - name: canopy-api
-          image: canopy-api:latest
+          image: canopy-api:v3
           imagePullPolicy: Never
 
           ports:
@@ -134,19 +134,21 @@ spec:
             - name: canopy-storage
               mountPath: /data
 
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 80
-            initialDelaySeconds: 5
-            periodSeconds: 5
+          #readinessProbe:
+            #httpGet:
+            #  path: /health
+              #port: 80
+            #initialDelaySeconds: 5
+            #periodSeconds: 5
+            #failureThreshold: 3
 
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 80
-            initialDelaySeconds: 10
-            periodSeconds: 10
+          #livenessProbe:
+            #httpGet:
+              #path: /health
+              #port: 80
+            #initialDelaySeconds: 10
+            #periodSeconds: 10
+            #failureThreshold: 3
 
       volumes:
         - name: canopy-storage
